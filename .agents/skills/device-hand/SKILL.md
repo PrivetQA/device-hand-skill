@@ -25,7 +25,11 @@ Inside it, only the hand changes the screen:
 - `action_scroll` names a direction. Do not draw the swipe.
 - `action_input_text` sends the whole string in one call. Do not send one key at a time and do not choose the gaps between keys.
 
-You do not place the finger, shape the swipe, or space the keys.
+You do not place the finger, shape the swipe, or space the keys. The product does that: a tap lands inside the named control in a different place each time, a swipe is uneven and a different length each time, and the gaps between keys vary, with a longer gap after a word.
+
+## Limits
+
+This skill does not make the device look like a physical phone. A virtual device and an open debugging channel stay visible to the device. Do not try to hide them. A passage driven by a command is still a command.
 
 ## Sight
 
