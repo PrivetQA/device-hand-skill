@@ -25,7 +25,7 @@ Inside it, only the hand changes the screen:
 - `action_scroll` names a direction. Do not draw the swipe.
 - `action_input_text` sends the whole string in one call. Do not send one key at a time and do not choose the gaps between keys.
 
-You do not place the finger, shape the swipe, or space the keys. The product does that: a tap lands inside the named control in a different place each time, a swipe is uneven and a different length each time, and the gaps between keys vary, with a longer gap after a word.
+You do not place the finger, shape the swipe, or space the keys. The product does that: a tap lands inside the named control in a different place each time, a second tap in the same series lands somewhere else inside it, a swipe is uneven and a different length each time, the gaps between keys vary, with a longer gap after a word, and a short gap is left before the next gesture.
 
 ## Limits
 
@@ -33,10 +33,10 @@ This skill does not make the device look like a physical phone. A virtual device
 
 ## Sight
 
-See the screen with the accessibility tree or a UI dump, whichever shows the control.
+See the screen with the accessibility tree. Use a UI dump only when that tree does not show the control. A dump starts a process named `uiautomator`.
 
 - Tree: `ui_get_tree`, `ui_find_nodes`, `ui_eval_xpath`. Name the tap with `accessibility_xpath`.
-- Dump: `ui_get_uiautomator_xml`, `ui_eval_uiautomator_xpath`. Name the tap with `uiautomator_xpath`.
+- Dump, only when the tree has no match: `ui_get_uiautomator_xml`, `ui_eval_uiautomator_xpath`. Name the tap with `uiautomator_xpath`.
 
 A dump does not change the screen. You do not have to look again or wait before the next gesture.
 
