@@ -27,12 +27,12 @@ Inside it, only the hand changes the screen:
 - A swipe is one finger that stays down. Do not use `action_scroll` or `input swipe`. `input swipe` is a straight injected line and can leave the app.
 - Type every character from the on-screen keyboard, on a virtual model and on a physical one, in an attended app and in a passage. Email, password, a code, a name, a username, a phone number, and an SMS code are that kind of text. Do not use `action_input_text`, `input text`, an accessibility `setText`, the clipboard, or a digit key code.
 
-You place every tap. Read the control's rectangle from the tree or, when the keyboard is closed, from a dump. The rectangle is `[left, right)` by `[top, bottom)`. Pick a new integer each time:
+You place every tap. A button, an input field, a key, and any other control are all this rule. Read that control's rectangle from the tree or, when the keyboard is closed, from a dump. The rectangle is `[left, right)` by `[top, bottom)`. Pick a new integer anywhere inside the whole rectangle each time:
 
 `x = left + random(0, right - left - 1)`
 `y = top + random(0, bottom - top - 1)`
 
-If `right` or `bottom` is past `wm size`, the bounds are in the larger frame. Halve all four edges, then pick inside that smaller rectangle. One hundred taps on the same button must be able to land on any pixel of it, including the corners, not only the center. Typing uses the same pick, inside the key.
+Do not aim at the center. The tap does not need the middle of the control. Do not shrink the rectangle toward the middle before the pick. One hundred taps on the same control must be able to land on any pixel of it, including the corners. If `right` or `bottom` is past `wm size`, the bounds are in the larger frame. Halve all four edges, then pick inside that smaller rectangle the same way. Typing uses the same pick, inside the key. A center listed for a key only names that key.
 
 ## Swipe
 
