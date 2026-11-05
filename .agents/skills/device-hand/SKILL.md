@@ -23,11 +23,16 @@ Enter it by tapping its icon or its card in Recents. Either is fine at any time.
 
 Inside it, only the hand changes the screen:
 
-- `action_tap` names the control. Do not send x, y, or a point taken from a screenshot.
+- A button tap is `input tap` at a point you choose. Do not use `action_tap` for it. That call asks the running service to place the finger, and the service still running does not cover the whole button.
 - `action_scroll` names a direction. Do not draw the swipe.
 - Type every character the user asked for from the on-screen keyboard, on a virtual model and on a physical one. Do not use `action_input_text`, `input text`, an accessibility `setText`, or the clipboard.
 
-You do not place the finger on a named control or shape the swipe. The product does that. Each tap is a new point chosen uniformly anywhere inside that control's rectangle, so repeated taps on one button cover the whole button and do not sit on its center. A swipe is uneven and a different length each time, and a short gap is left before the next gesture. Typing is the same kind of tap, on the key.
+You place every tap. Read the control's rectangle from the tree or, when the keyboard is closed, from a dump. The rectangle is `[left, right)` by `[top, bottom)`. Pick a new integer each time:
+
+`x = left + random(0, right - left - 1)`
+`y = top + random(0, bottom - top - 1)`
+
+If `right` or `bottom` is past `wm size`, the bounds are in the larger frame. Halve all four edges, then pick inside that smaller rectangle. One hundred taps on the same button must be able to land on any pixel of it, including the corners, not only the center. A swipe stays a named direction. Typing uses the same pick, inside the key.
 
 ## Limits
 
@@ -50,7 +55,7 @@ An instrument changes the screen without the hand. Inside an attended app, do no
 - `adb_shell`, or a shell stream, that runs `input text`, `input swipe`, `input keyevent`, `am start`, an activity name, or a setting that changes the screen
 - a click performed through accessibility instead of `action_tap`
 
-The one shell write allowed in an attended app is `input tap` on a key in the Typing layout. A swipe from a key opened another app. Do not swipe a key.
+The shell write allowed in an attended app is `input tap` at the point you picked inside a button or a key. A swipe from a key opened another app. Do not swipe a key.
 
 Shell that only reads, including `dumpsys input_method`, is not an instrument. A UI dump is a read that still closes the keyboard.
 
@@ -62,9 +67,9 @@ A page an attended app opened is not a passage, even when its package is Chrome.
 
 ## Typing
 
-On a physical model and on a virtual one, each character is a tap on the key that is on the screen. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If the keyboard is closed, stop. Do not tap the field, the page, or Back to open it. Do not press Back, tap outside the keyboard, tap the field again, or dump the UI while it is open. One `input tap` per character at a new uniform random point inside that key, 110–180 ms apart. Do not aim at the key's center. Do not swipe a key. Do not tap Continue, the eye, or the checkmark unless the user asked to submit. Do not tap the navigation bar under the keyboard.
+On a physical model and on a virtual one, each character is a tap on the key that is on the screen. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If the keyboard is closed, stop. Do not tap the field, the page, or Back to open it. Do not press Back, tap outside the keyboard, tap the field again, or dump the UI while it is open. One `input tap` per character. The table below gives the key's center only so you know which key. The rectangle is about 47×60 around that center on a 540×1200 screen; scale it with `wm size`. Pick the tap with the same formula as a button, inside that rectangle, and wait 110–180 ms. Do not aim at the center. Do not swipe a key. Do not tap Continue, the eye, or the checkmark unless the user asked to submit. Do not tap the navigation bar under the keyboard.
 
-A physical model uses the Gboard layout below. A virtual model does not. Its keyboard can be a different size and a different arrangement. If its letter keys are nodes, `action_tap` names the key. If they are not, take one screenshot and count the keys that are actually there, then tap those points. Do not copy the physical coordinates onto a virtual screen. If a tap does not produce the character, count again from a new screenshot. Do not insert the whole string.
+A physical model uses the Gboard layout below. A virtual model does not. Its keyboard can be a different size and a different arrangement. Take one screenshot and count the keys that are actually there, then pick a point inside each key yourself. Do not copy the physical coordinates onto a virtual screen, and do not hand the point to `action_tap`. If a tap does not produce the character, count again from a new screenshot. Do not insert the whole string.
 
 The physical points were measured on Gboard (`com.google.android.inputmethod.latin`) in portrait on a 540×1200 screen. Scale them for another physical `wm size`: `x = round(px * width / 540)`, `y = round(py * height / 1200)`. Those letter keys are not in the accessibility tree, so a named tap cannot hit them. On that screen a key is about 47×60 around the center in the table. Pick the tap uniformly inside that rectangle. Nothing below y 1112: that is the navigation bar.
 
