@@ -6,9 +6,8 @@ description: >-
   character, in Play and in an attended app, comes from the on-screen
   keyboard. A physical model uses the measured Gboard layout. A virtual
   model measures the keys on its own screen. A swipe, including a date
-  wheel, is one finger stroke. A UI dump may close the keyboard; reopen it
-  with a random tap in the field. Play Store and Chrome are passages for
-  opening only. Does not create a device.
+  wheel, is one finger stroke. A UI dump does not close the keyboard.
+  Play Store and Chrome are passages for opening only. Does not create a device.
 compatibility: Any agent with the Telephort MCP session tools.
 ---
 
@@ -69,13 +68,13 @@ Clearing a field is one tap on the backspace key for each character. That key sh
 
 On the measured Gboard portrait layout the backspace key is centered at 496, 1004. The key is about 47×60 around that center. Scale it with `wm size` on another physical screen. Pick a new point inside the key for every tap, and wait 110–180 ms. A virtual keyboard can put this key somewhere else. Find the arrow-box glyph on that screen. Do not copy 496, 1004.
 
-Tap once for each character that has to go. Stop when those characters are gone. If the keyboard closes, tap a random point in the field to bring it back, then continue on the backspace key.
+Tap once for each character that has to go. Stop when those characters are gone. A dump does not close the keyboard. If it is already closed, one random tap inside the field brings it up, then continue on the backspace key.
 
 ## Limits
 
 This skill does not make the device look like a physical phone. A virtual device and an open debugging channel stay visible to the device. Do not try to hide them.
 
-An app does not see a process named `uiautomator` or `monkey`. Android does not give an app the list of other processes. A dump shows up inside the app as the keyboard closing. A launch from the shell is not labeled monkey. The app receives an ordinary open intent. On Android 14 and newer the activity can be asked which package started it, and a shell start is not the launcher. Do not claim the app saw the process name.
+An app does not see a process named `uiautomator` or `monkey`. Android does not give an app the list of other processes. A dump does not close the keyboard. A launch from the shell is not labeled monkey. The app receives an ordinary open intent. On Android 14 and newer the activity can be asked which package started it, and a shell start is not the launcher. Do not claim the app saw the process name.
 
 ## Sight
 
@@ -84,7 +83,7 @@ See the screen with the accessibility tree. Use a UI dump only when that tree do
 - Tree: `ui_get_tree`, `ui_find_nodes`, `ui_eval_xpath`. Name the tap with `accessibility_xpath`.
 - Dump, only when the tree has no match: `ui_get_uiautomator_xml`, `ui_eval_uiautomator_xpath`. Name the tap with `uiautomator_xpath`.
 
-A dump does not change the page. It does dismiss the on-screen keyboard. That is fine. Bring the keyboard back with one `input tap` at a random point inside the input field, the same pick as any other control. Do not use a key to show it. See whether it is open with `dumpsys input_method`: `mInputShown=true`, and `mServedView` is the field you are typing into. That read does not close it.
+A dump does not change the page and does not dismiss the on-screen keyboard. Do not tap the field after a dump. See whether the keyboard is open with `dumpsys input_method`: `mInputShown=true`, and `mServedView` is the field you are typing into. That read does not close it either.
 
 ## Instrument
 
@@ -96,7 +95,7 @@ An instrument changes the screen without the hand. Inside an attended app, do no
 
 The shell write allowed in an attended app is `input tap` at the point you picked inside a button or a key. A swipe from a key opened another app. Do not swipe a key.
 
-Shell that only reads, including `dumpsys input_method`, is not an instrument. A UI dump is a read that still closes the keyboard.
+Shell that only reads, including `dumpsys input_method`, is not an instrument. A UI dump is a read. It does not close the keyboard.
 
 ## Passage
 
@@ -106,7 +105,7 @@ A page an attended app opened is not a passage, even when its package is Chrome.
 
 ## Typing
 
-On a physical model and on a virtual one, in Play and in an attended app, each character is a tap on the key that is on the screen. That includes email, password, a verification code, a name, a username, a phone number, and an SMS code. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If it is closed, open it with one random tap inside the field. Do not press Back, tap outside the field, or send a key to open it. One `input tap` per character. The table below gives the key's center only so you know which key. The rectangle is about 47×60 around that center on a 540×1200 screen; scale it with `wm size`. Pick the tap with the same formula as a button, inside that rectangle, and wait 110–180 ms. Do not aim at the center. Do not swipe a key. Do not tap Continue or the eye unless the user asked. To submit the field, tap the checkmark key. Digits are the top row after ?123, never key codes. Do not tap the navigation bar under the keyboard.
+On a physical model and on a virtual one, in Play and in an attended app, each character is a tap on the key that is on the screen. That includes email, password, a verification code, a name, a username, a phone number, and an SMS code. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If it is already closed, open it with one random tap inside the field. A dump does not close it, so do not tap the field after a dump. Do not press Back, tap outside the field, or send a key to open it. One `input tap` per character. The table below gives the key's center only so you know which key. The rectangle is about 47×60 around that center on a 540×1200 screen; scale it with `wm size`. Pick the tap with the same formula as a button, inside that rectangle, and wait 110–180 ms. Do not aim at the center. Do not swipe a key. Do not tap Continue or the eye unless the user asked. To submit the field, tap the checkmark key. Digits are the top row after ?123, never key codes. Do not tap the navigation bar under the keyboard.
 
 A physical model uses the Gboard layout below. A virtual model does not. Its keyboard can be a different size and a different arrangement. Take one screenshot and count the keys that are actually there, then pick a point inside each key yourself. Do not copy the physical coordinates onto a virtual screen, and do not hand the point to `action_tap`. If a tap does not produce the character, count again from a new screenshot. Do not insert the whole string.
 
