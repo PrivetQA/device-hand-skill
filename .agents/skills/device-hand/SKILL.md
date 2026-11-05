@@ -60,6 +60,14 @@ On the measured Gboard portrait layout the tick is centered at 496, 1084. The ke
 
 Tap it only when the field is ready to submit. While characters are still being typed, leave it.
 
+## Clear
+
+Clearing a field is one tap on the backspace key for each character. That key shows an arrow box with a cross, on the right of the bottom letter row. Do not send `input keyevent 67`, do not send `input keyevent 123`, and do not delete the field in one batch.
+
+On the measured Gboard portrait layout the backspace key is centered at 496, 1004. The key is about 47×60 around that center. Scale it with `wm size` on another physical screen. Pick a new point inside the key for every tap, and wait 110–180 ms. A virtual keyboard can put this key somewhere else. Find the arrow-box glyph on that screen. Do not copy 496, 1004.
+
+Tap once for each character that has to go. Stop when those characters are gone. Do not dump the screen to count them while the keyboard is open.
+
 ## Limits
 
 This skill does not make the device look like a physical phone. A virtual device and an open debugging channel stay visible to the device. Do not try to hide them. A passage driven by a command is still a command.
@@ -78,7 +86,7 @@ A dump does not change an attended page. It does dismiss the on-screen keyboard.
 An instrument changes the screen without the hand. Inside an attended app, do not use one:
 
 - `action_launch_app`
-- `adb_shell`, or a shell stream, that runs `input text`, `input swipe`, `input keyevent`, `am start`, an activity name, or a setting that changes the screen. Back is the navigation control. Submit is the checkmark on the keyboard. Do not send key 4 or key 66.
+- `adb_shell`, or a shell stream, that runs `input text`, `input swipe`, `input keyevent`, `am start`, an activity name, or a setting that changes the screen. Back is the navigation control. Submit is the checkmark on the keyboard. Delete is the backspace key, one tap per character. Do not send key 4, key 66, key 67, or key 123.
 - a click performed through accessibility instead of `action_tap`
 
 The shell write allowed in an attended app is `input tap` at the point you picked inside a button or a key. A swipe from a key opened another app. Do not swipe a key.
@@ -107,7 +115,7 @@ Letters, top to bottom. The y values are the key centers.
 | 928 | a 56, s 109, d 162, f 215, g 268, h 321, j 374, k 428, l 482 |
 | 1004 | z 109, x 162, c 215, v 268, b 321, n 374, m 428 |
 
-Shift is the blue key at 42, 1004. Backspace is the blue key at 496, 1004. Tap shift once, then the letter, for one capital.
+Shift is the blue key at 42, 1004. Backspace is the arrow-box key at 496, 1004. One tap removes one character. Tap shift once, then the letter, for one capital.
 
 Digits are the top row after one tap on ?123 at 40, 1080. That row uses the same centers as q–p at y 852: 1 is q, 8 is i, 7 is u, 0 is p. Do not long-press a letter to reach its digit. Space is 295, 1084. Comma is 109, 1084. Period is 429, 1084. The checkmark is the light key at 496, 1084. That tap submits the field.
 
