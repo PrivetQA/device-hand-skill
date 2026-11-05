@@ -24,7 +24,7 @@ Enter it by tapping its icon or its card in Recents. Either is fine at any time.
 Inside it, only the hand changes the screen:
 
 - A button tap is `input tap` at a point you choose. Do not use `action_tap` for it. That call asks the running service to place the finger, and the service still running does not cover the whole button.
-- `action_scroll` names a direction. Do not draw the swipe.
+- A swipe is one finger that stays down. Do not use `action_scroll` or `input swipe`. `input swipe` is a straight injected line and can leave the app.
 - Type every character the user asked for from the on-screen keyboard, on a virtual model and on a physical one. Do not use `action_input_text`, `input text`, an accessibility `setText`, or the clipboard.
 
 You place every tap. Read the control's rectangle from the tree or, when the keyboard is closed, from a dump. The rectangle is `[left, right)` by `[top, bottom)`. Pick a new integer each time:
@@ -32,7 +32,33 @@ You place every tap. Read the control's rectangle from the tree or, when the key
 `x = left + random(0, right - left - 1)`
 `y = top + random(0, bottom - top - 1)`
 
-If `right` or `bottom` is past `wm size`, the bounds are in the larger frame. Halve all four edges, then pick inside that smaller rectangle. One hundred taps on the same button must be able to land on any pixel of it, including the corners, not only the center. A swipe stays a named direction. Typing uses the same pick, inside the key.
+If `right` or `bottom` is past `wm size`, the bounds are in the larger frame. Halve all four edges, then pick inside that smaller rectangle. One hundred taps on the same button must be able to land on any pixel of it, including the corners, not only the center. Typing uses the same pick, inside the key.
+
+## Swipe
+
+Send it on the input channel as `multi-touch` for one pointer. The first message has `down: 1` at the start. The later messages keep `down: 1` and move. The last message has `down: 0` at the end. Do not lift between samples.
+
+Do not use one clock. The gap between samples wanders from about 4 ms to about 22 ms, and a stroke is sometimes a quick flick of roughly 150–310 ms and sometimes a slower drag of roughly 280–480 ms. Place samples with minimum-jerk progress, `t³ (10 - 15t + 6t²)`, warped so the fast part is not always in the middle. The finger is stopped at the press and at the lift.
+
+The stroke does not cross the whole path you were given. Its length changes every time: usually about a quarter to a half of that path, and at most about two thirds. On a phone that is a short flick, about 2–6 cm, not a drag across the screen. A path that is already shorter than about 48 px stays nearly whole. Add one shallow bow, at most 9% of the stroke. Keep it on the page, away from the navigation bar.
+
+The message has only `x`, `y`, and `down`. It has no pressure and no contact size, so the phone does not receive a fingertip ellipse. A real finger on a 540×1200 screen would cover about 8–11 mm along the stroke and 6–8 mm across, roughly 65–90 by 50–65 px. Android pressure, on a 0–1 scale, would be about 0.3 at contact, about 0.5 in the middle, and about 0.2 at the lift. Do not add those fields until the host reads them.
+
+## Back
+
+Back is a control on the screen. Do not send `input keyevent`, including key 4. A key event has no finger and no place on the glass.
+
+Look at the navigation strip first. On the measured 540×1200 phone that strip is below y 1112. If three buttons are there, Back is the triangle, usually the left one. Pick a point inside that button the same way as any other button, and send `input tap`. Do not tap the circle or the square. If the strip is only a pill, there is no Back button. A short finger swipe in from the left or right edge is Back. Do not tap the pill.
+
+Do not press Back while a character is still being typed. Use it to leave a page, or to put the keyboard down, only when that is the action.
+
+## Submit
+
+Submitting a field is a tap on the checkmark key. That key sits at the bottom right of the keyboard: a light key with a tick on it. Do not send `input keyevent 66`. Do not send Enter by any other call.
+
+On the measured Gboard portrait layout the tick is centered at 496, 1084. The key is about 47×60 around that center. Scale it with `wm size` on another physical screen. Pick the point inside the key, and keep it above the navigation strip. A virtual keyboard can put this key somewhere else. Find the tick on that screen. Do not copy 496, 1084.
+
+Tap it only when the field is ready to submit. While characters are still being typed, leave it.
 
 ## Limits
 
@@ -52,7 +78,7 @@ A dump does not change an attended page. It does dismiss the on-screen keyboard.
 An instrument changes the screen without the hand. Inside an attended app, do not use one:
 
 - `action_launch_app`
-- `adb_shell`, or a shell stream, that runs `input text`, `input swipe`, `input keyevent`, `am start`, an activity name, or a setting that changes the screen
+- `adb_shell`, or a shell stream, that runs `input text`, `input swipe`, `input keyevent`, `am start`, an activity name, or a setting that changes the screen. Back is the navigation control. Submit is the checkmark on the keyboard. Do not send key 4 or key 66.
 - a click performed through accessibility instead of `action_tap`
 
 The shell write allowed in an attended app is `input tap` at the point you picked inside a button or a key. A swipe from a key opened another app. Do not swipe a key.
@@ -67,7 +93,7 @@ A page an attended app opened is not a passage, even when its package is Chrome.
 
 ## Typing
 
-On a physical model and on a virtual one, each character is a tap on the key that is on the screen. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If the keyboard is closed, stop. Do not tap the field, the page, or Back to open it. Do not press Back, tap outside the keyboard, tap the field again, or dump the UI while it is open. One `input tap` per character. The table below gives the key's center only so you know which key. The rectangle is about 47×60 around that center on a 540×1200 screen; scale it with `wm size`. Pick the tap with the same formula as a button, inside that rectangle, and wait 110–180 ms. Do not aim at the center. Do not swipe a key. Do not tap Continue, the eye, or the checkmark unless the user asked to submit. Do not tap the navigation bar under the keyboard.
+On a physical model and on a virtual one, each character is a tap on the key that is on the screen. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If the keyboard is closed, stop. Do not tap the field, the page, or Back to open it. Do not press Back, tap outside the keyboard, tap the field again, or dump the UI while it is open. One `input tap` per character. The table below gives the key's center only so you know which key. The rectangle is about 47×60 around that center on a 540×1200 screen; scale it with `wm size`. Pick the tap with the same formula as a button, inside that rectangle, and wait 110–180 ms. Do not aim at the center. Do not swipe a key. Do not tap Continue or the eye unless the user asked. To submit the field, tap the checkmark key. Do not tap the navigation bar under the keyboard.
 
 A physical model uses the Gboard layout below. A virtual model does not. Its keyboard can be a different size and a different arrangement. Take one screenshot and count the keys that are actually there, then pick a point inside each key yourself. Do not copy the physical coordinates onto a virtual screen, and do not hand the point to `action_tap`. If a tap does not produce the character, count again from a new screenshot. Do not insert the whole string.
 
@@ -83,7 +109,7 @@ Letters, top to bottom. The y values are the key centers.
 
 Shift is the blue key at 42, 1004. Backspace is the blue key at 496, 1004. Tap shift once, then the letter, for one capital.
 
-Digits are the top row after one tap on ?123 at 40, 1080. That row uses the same centers as q–p at y 852: 1 is q, 8 is i, 7 is u, 0 is p. Do not long-press a letter to reach its digit. Space is 295, 1084. Comma is 109, 1084. Period is 429, 1084. The checkmark is 496, 1084; leave it.
+Digits are the top row after one tap on ?123 at 40, 1080. That row uses the same centers as q–p at y 852: 1 is q, 8 is i, 7 is u, 0 is p. Do not long-press a letter to reach its digit. Space is 295, 1084. Comma is 109, 1084. Period is 429, 1084. The checkmark is the light key at 496, 1084. That tap submits the field.
 
 Letter taps, one tap on ?123, then digit taps on that top row landed in the field. The rest of the grid is the same measurement. If a tap does not produce the character, take one screenshot and remeasure. Do not switch to inserting the whole string.
 
