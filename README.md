@@ -1,6 +1,6 @@
 # Device hand skill
 
-Instructions for any AI agent that drives a live Telephort device through MCP. Inside an attended app the agent uses the hand. It does not launch that app by package or click through accessibility. On a physical model it types by tapping the measured Gboard keys.
+Instructions for any AI agent that drives a live Telephort device through MCP. Inside an attended app the agent uses the hand. It does not launch that app by package or click through accessibility. It types from the on-screen keyboard. A physical model uses the measured Gboard layout. A virtual model measures the keys on its own screen.
 
 The instructions are `.agents/skills/device-hand/SKILL.md`.
 

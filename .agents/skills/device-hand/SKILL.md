@@ -3,8 +3,9 @@ name: device-hand
 description: >-
   Drive a live Telephort device through MCP with the hand inside an attended
   app. Use when an agent taps, swipes, types, scrolls, or opens an app on a
-  device session. On a physical model, type by tapping the on-screen Gboard
-  keys from the measured layout. Forbids launching an attended app by package
+  device session. Type from the on-screen keyboard. A physical model uses
+  the measured Gboard layout. A virtual model measures the keys on its own
+  screen and does not reuse those points. Forbids launching an attended app by package
   and an accessibility click. Play Store and Chrome, used as the workplace,
   are passages. Does not create a device.
 compatibility: Any agent with the Telephort MCP session tools.
@@ -24,10 +25,9 @@ Inside it, only the hand changes the screen:
 
 - `action_tap` names the control. Do not send x, y, or a point taken from a screenshot.
 - `action_scroll` names a direction. Do not draw the swipe.
-- On a virtual model, `action_input_text` sends the whole string in one call.
-- On a physical model, type every character the user asked for by the Typing section. Do not use `action_input_text`, `input text`, an accessibility `setText`, or the clipboard.
+- Type every character the user asked for from the on-screen keyboard, on a virtual model and on a physical one. Do not use `action_input_text`, `input text`, an accessibility `setText`, or the clipboard.
 
-You do not place the finger on a named control, shape the swipe, or space virtual keys. The product does that: a tap lands inside the named control in a different place each time, a second tap in the same series lands somewhere else inside it, a swipe is uneven and a different length each time, and a short gap is left before the next gesture. Physical typing is the exception: you tap the key.
+You do not place the finger on a named control or shape the swipe. The product does that: a tap lands inside the named control in a different place each time, a second tap in the same series lands somewhere else inside it, a swipe is uneven and a different length each time, and a short gap is left before the next gesture. Typing is the exception: each character is a tap on its key.
 
 ## Limits
 
@@ -62,14 +62,11 @@ A page an attended app opened is not a passage, even when its package is Chrome.
 
 ## Typing
 
-Use this on every physical model when this skill is how you type. The points were measured on Gboard (`com.google.android.inputmethod.latin`) in portrait on a 540×1200 screen. Scale them for the current `wm size`: `x = round(px * width / 540)`, `y = round(py * height / 1200)`. Gboard's letter keys are not in the accessibility tree, so a named tap cannot hit them.
+On a physical model and on a virtual one, each character is a tap on the key that is on the screen. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If the keyboard is closed, stop. Do not tap the field, the page, or Back to open it. Do not press Back, tap outside the keyboard, tap the field again, or dump the UI while it is open. One `input tap` per character, a few pixels off the center of that key, 110–180 ms apart. Do not swipe a key. Do not tap Continue, the eye, or the checkmark unless the user asked to submit. Do not tap the navigation bar under the keyboard.
 
-Before the first character:
+A physical model uses the Gboard layout below. A virtual model does not. Its keyboard can be a different size and a different arrangement. If its letter keys are nodes, `action_tap` names the key. If they are not, take one screenshot and count the keys that are actually there, then tap those points. Do not copy the physical coordinates onto a virtual screen. If a tap does not produce the character, count again from a new screenshot. Do not insert the whole string.
 
-1. `dumpsys input_method` shows `mInputShown=true` and the served view is the field. If the keyboard is closed, stop. Do not tap the field, the page, or Back to summon it.
-2. Leave the keyboard up until the user is done with the field. Do not press Back. Do not tap outside the keyboard. Do not tap the field again. Do not dump the UI.
-
-Each character is one `input tap` a few pixels off that key's center, still inside the key. On 540×1200 the keys are about 47×60, so stay at least 8 px inside; scale that inset with the width. Change the offset from key to key. Wait 110–180 ms between taps. Do not tap Continue, the eye, or the checkmark unless the user asked to submit. Do not tap the navigation bar under the keyboard (on 540×1200, nothing below y 1112).
+The physical points were measured on Gboard (`com.google.android.inputmethod.latin`) in portrait on a 540×1200 screen. Scale them for another physical `wm size`: `x = round(px * width / 540)`, `y = round(py * height / 1200)`. Those letter keys are not in the accessibility tree, so a named tap cannot hit them. On that screen the keys are about 47×60; stay at least 8 px inside, and scale the inset with the width. Nothing below y 1112: that is the navigation bar.
 
 Letters, top to bottom. The y values are the key centers.
 
