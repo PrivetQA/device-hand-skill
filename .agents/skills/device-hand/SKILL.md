@@ -23,7 +23,7 @@ Enter it by tapping its icon or its card in Recents. Either is fine at any time.
 
 Inside it, only the hand changes the screen:
 
-- A button tap is `input tap` at a point you choose. Do not use `action_tap` for it. That call asks the running service to place the finger, and the service still running does not cover the whole button.
+- A button tap is one finger on the input channel: `down` at the point you picked, a short hold, a move of a few pixels while the finger stays down, then `up`. Do not use `input tap`. Do not use `action_tap`. That call asks the running service to place the finger, and the service still running does not cover the whole button.
 - A swipe is one finger that stays down. Do not use `action_scroll` or `input swipe`. `input swipe` is a straight injected line and can leave the app.
 - Type every character from the on-screen keyboard, on a virtual model and on a physical one, in an attended app and in a passage. Email, password, a code, a name, a username, a phone number, and an SMS code are that kind of text. Do not use `action_input_text`, `input text`, an accessibility `setText`, the clipboard, or a digit key code.
 
@@ -33,6 +33,16 @@ You place every tap. A button, an input field, a key, and any other control are 
 `y = top + random(0, bottom - top - 1)`
 
 Do not aim at the center. The tap does not need the middle of the control. Do not shrink the rectangle toward the middle before the pick. One hundred taps on the same control must be able to land on any pixel of it, including the corners. If `right` or `bottom` is past `wm size`, the bounds are in the larger frame. Halve all four edges, then pick inside that smaller rectangle the same way. Typing uses the same pick, inside the key. A center listed for a key only names that key.
+
+## Press
+
+Send the press on the input channel as `multi-touch`, the same channel as a swipe. `down: 1` at the picked point, hold, then `down: 0`. A key stays down about 48–78 ms and does not move. A longer hold opens Gboard's alternate-character popup, and a slide on a key inserts another character. A button may creep 1–3 px while it stays down, and that creep stays inside the button. A button stays down about 55–140 ms. Pick a new duration every time.
+
+The message still has only `x`, `y`, and `down`. It has no pressure and no contact size, so the phone does not receive a fingertip ellipse or a force. Do not add those fields until the host reads them. A real finger on a 540×1200 screen would cover about 8–11 mm along the finger and 6–8 mm across, roughly 65–90 by 50–65 px. Android pressure, on a 0–1 scale, would be about 0.3 at contact, about 0.5 in the middle, and about 0.2 at the lift.
+
+`input tap` is a click from the shell. It has no hold and no fingertip. Do not use it for a button, a field, or a key.
+
+Wait a different gap after every press. A letter or a digit waits about 220–520 ms. Shift, ?123, and the key that returns to letters wait about 280–750 ms before the press and about 220–520 ms after it. The checkmark waits about 450–1150 ms before the press. A permission dialog (Allow, Don't allow, Deny, Not now) waits about 1.1–3.6 s before the press. Another screen action waits about 0.7–2.6 s. Do not reuse one interval.
 
 ## Swipe
 
@@ -50,7 +60,7 @@ The message has only `x`, `y`, and `down`. It has no pressure and no contact siz
 
 Back is a control on the screen. Do not send `input keyevent`, including key 4. A key event has no finger and no place on the glass.
 
-Look at the navigation strip first. On the measured 540×1200 phone that strip is below y 1112. If three buttons are there, Back is the triangle, usually the left one. Pick a point inside that button the same way as any other button, and send `input tap`. Do not tap the circle or the square. If the strip is only a pill, there is no Back button. A short finger swipe in from the left or right edge is Back. Do not tap the pill.
+Look at the navigation strip first. On the measured 540×1200 phone that strip is below y 1112. If three buttons are there, Back is the triangle, usually the left one. Pick a point inside that button the same way as any other button, and send the finger press. Do not tap the circle or the square. If the strip is only a pill, there is no Back button. A short finger swipe in from the left or right edge is Back. Do not tap the pill.
 
 Do not press Back while a character is still being typed. Use it to leave a page, or to put the keyboard down, only when that is the action.
 
@@ -66,7 +76,7 @@ Tap it only when the field is ready to submit. While characters are still being 
 
 Clearing a field is one tap on the backspace key for each character. That key shows an arrow box with a cross, on the right of the bottom letter row. Do not send `input keyevent 67`, do not send `input keyevent 123`, and do not delete the field in one batch.
 
-On the measured Gboard portrait layout the backspace key is centered at 496, 1004. The key is about 47×60 around that center. Scale it with `wm size` on another physical screen. Pick a new point inside the key for every tap, and wait 110–180 ms. A virtual keyboard can put this key somewhere else. Find the arrow-box glyph on that screen. Do not copy 496, 1004.
+On the measured Gboard portrait layout the backspace key is centered at 496, 1004. The key is about 47×60 around that center. Scale it with `wm size` on another physical screen. Pick a new point inside the key for every press, hold it as a key, and wait about 220–520 ms. A virtual keyboard can put this key somewhere else. Find the arrow-box glyph on that screen. Do not copy 496, 1004.
 
 Tap once for each character that has to go. Stop when those characters are gone. A dump does not close the keyboard. If it is already closed, one random tap inside the field brings it up, then continue on the backspace key.
 
@@ -93,7 +103,7 @@ An instrument changes the screen without the hand. Inside an attended app, do no
 - `adb_shell`, or a shell stream, that runs `input text`, `input swipe`, `input keyevent`, `am start`, an activity name, or a setting that changes the screen. The ban on `input text`, `input swipe`, and `input keyevent` also holds in a passage. Back is the navigation control. Submit is the checkmark on the keyboard. Delete is the backspace key, one tap per character. Digits are the keyboard row, not key codes 7–16. Do not send key 4, key 66, key 67, or key 123.
 - a click performed through accessibility instead of `action_tap`
 
-The shell write allowed in an attended app is `input tap` at the point you picked inside a button or a key. A swipe from a key opened another app. Do not swipe a key.
+A finger press goes on the input channel, not through the shell. Do not send `input tap`. A swipe from a key opened another app. Do not swipe a key. The few pixels of movement during a press stay inside that key.
 
 Shell that only reads, including `dumpsys input_method`, is not an instrument. A UI dump is a read. It does not close the keyboard.
 
@@ -105,7 +115,7 @@ A page an attended app opened is not a passage, even when its package is Chrome.
 
 ## Typing
 
-On a physical model and on a virtual one, in Play and in an attended app, each character is a tap on the key that is on the screen. That includes email, password, a verification code, a name, a username, a phone number, and an SMS code. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If it is already closed, open it with one random tap inside the field. A dump does not close it, so do not tap the field after a dump. Do not press Back, tap outside the field, or send a key to open it. One `input tap` per character. The table below gives the key's center only so you know which key. The rectangle is about 47×60 around that center on a 540×1200 screen; scale it with `wm size`. Pick the tap with the same formula as a button, inside that rectangle, and wait 110–180 ms. Do not aim at the center. Do not swipe a key. Do not tap Continue or the eye unless the user asked. To submit the field, tap the checkmark key. Digits are the top row after ?123, never key codes. Do not tap the navigation bar under the keyboard.
+On a physical model and on a virtual one, in Play and in an attended app, each character is a tap on the key that is on the screen. That includes email, password, a verification code, a name, a username, a phone number, and an SMS code. The keyboard stays up, the same way for both: `dumpsys input_method` must show `mInputShown=true` and the served view must be the field. If it is already closed, open it with one random tap inside the field. A dump does not close it, so do not tap the field after a dump. Do not press Back, tap outside the field, or send a key to open it. One finger press per character. The table below gives the key's center only so you know which key. The rectangle is about 47×60 around that center on a 540×1200 screen; scale it with `wm size`. Pick the press with the same formula as a button, inside that rectangle. Hold the key as in Press, then wait about 220–520 ms. Shift and ?123 take the longer gap in Press. Wait about 450–1150 ms before the checkmark. Do not aim at the center. Do not swipe a key. Do not tap Continue or the eye unless the user asked. To submit the field, tap the checkmark key. Digits are the top row after ?123, never key codes. Do not tap the navigation bar under the keyboard.
 
 A physical model uses the Gboard layout below. A virtual model does not. Its keyboard can be a different size and a different arrangement. Take one screenshot and count the keys that are actually there, then pick a point inside each key yourself. Do not copy the physical coordinates onto a virtual screen, and do not hand the point to `action_tap`. If a tap does not produce the character, count again from a new screenshot. Do not insert the whole string.
 
